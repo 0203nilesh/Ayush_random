@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Draw Polygon with Leaflet-PM</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.pm/dist/leaflet.pm.css"
+    />
+    <script src="https://unpkg.com/leaflet.pm"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      #map {
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize the map
+        const map = L.map("map").setView([25.6118, 85.134], 15);
+
+        // Add the OpenStreetMap tile layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+        }).addTo(map);
+
+        // Enable Leaflet-PM drawing plugin
+        map.pm.addControls({
+          position: "topleft",
+          drawPolygon: true,
+          drawMarker: false,
+          drawCircleMarker: false,
+          drawCircle: false,
+          drawRectangle: false,
+          cutPolygon: false,
+          editMode: false,
+          removalMode: false,
+        });
+
+        // Array to store all coordinates
+        const coordinates = [];
+
+        map.on("pm:create", function (e) {
+          const layer = e.layer;
+
+          // Check if the layer is a polygon and has coordinates
+          if (layer instanceof L.Polygon && layer.getLatLngs().length > 0) {
+            const layerCoordinates = layer
+              .getLatLngs()[0]
+              .map((point) => [point.lat, point.lng]);
+            coordinates.push(...layerCoordinates);
+
+            const isInside = layer
+              .getBounds()
+              .contains(layer.getLatLngs()[0][0]);
+            if (isInside) {
+              alert("Your Child is inside the drawn region!");
+            } else {
+              alert("Your Child is outside the drawn region.");
+            }
+
+            console.log("All Coordinates:", coordinates);
+          } else {
+            console.error("Invalid drawn layer:", layer);
+          }
+        });
+
+        map.on("locationfound", function (e) {
+          const marker = L.marker(e.latlng).addTo(map);
+
+          map.on("pm:create", function (e) {
+            // Additional handling after the creation of a shape
+          });
+        });
+
+        map.on("locationerror", function (e) {
+          alert("Error getting location: " + e.message);
+        });
+      });
+    </script>
+  </body>
+</html>
